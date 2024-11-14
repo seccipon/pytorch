@@ -2516,6 +2516,12 @@ def compile(
 
     from torch._inductor.compiler_bisector import CompilerBisector
 
+    enter_exit_hooks = []
+    if torch._dynamo.config.specialize_float and backend == "eager":
+        enter_exit_hooks.append(
+            torch._dynamo.config._make_closure_patcher(specialize_float=False)
+        )
+
     if bisect_backend := CompilerBisector.get_backend():
         backend = bisect_backend
 
@@ -2529,6 +2535,7 @@ def compile(
         nopython=fullgraph,
         dynamic=dynamic,
         disable=disable,
+        enter_exit_hooks=enter_exit_hooks,
     )(model)  # type: ignore[return-value]
 
 
